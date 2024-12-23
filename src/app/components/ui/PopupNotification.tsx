@@ -84,10 +84,10 @@ const PopupNotification: React.FC<PopupNotificationProps> = ({
   const config = getVariantConfig();
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+    <div className="fixed h-screen overflow-hidden inset-0 z-50 ">
+      <div className="fixed inset-0 bg-black/30"></div>
 
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex h-screen items-center justify-center p-4">
         <div className="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:w-full sm:max-w-lg">
           <button
             onClick={onClose}

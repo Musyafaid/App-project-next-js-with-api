@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Button from "../ui/Button";
-import { dropSubjects, getSubjects } from "@/app/api/data/subjects/subjects";
+import { dropSubjects, getSubjectById, getSubjects } from "@/app/api/data/subjects/subjects";
 import FormSubject from "./FormSubject";
 import PopupNotification from "../ui/PopupNotification";
 
@@ -15,29 +15,38 @@ export default function TableData() {
   const [subject, setSubject] = useState<Subject[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
-  const [deletePopup, setDeletePopup] = useState<boolean>(false);
-  const [updatePopup, setUpdatePopup] = useState<boolean>(false);
+  const [data,setData] = useState<Subject | null>(null);;
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
-  const handleConfirm = (id: number) => {
-    handleDelete(id);
-  };
 
   const [message, setMessage] = useState("");
   const [messageError, setMessageError] = useState("");
 
-  const handleAddData = async () => {
+  const handleForm = async () => {
+    setData(null);
     setActiveForm((prev) => !prev);
   };
+
+
+  const handleUpdate = async (id:any) => {
+    setActiveForm(false);
+    try{
+      const data = await getSubjectById(id);
+      setData(data.subject);
+    }catch(error){
+      console.error("Unexpected error:", error);
+    }
+  }
+
+
 
   const handleDelete = async (id: number) => {
     try {
       const drop = await dropSubjects(id);
       console.log(drop);
       setIsOpen(false);
-
       getSubject();
     } catch (error) {
       console.error("Unexpected error:", error);
@@ -45,6 +54,7 @@ export default function TableData() {
   };
 
   const getSubject = async () => {
+    setData(null);
     try {
       const data = await getSubjects();
       setSubject(data.subjects);
@@ -71,6 +81,14 @@ export default function TableData() {
         {activeForm ? (
           <div className="w-full my-6">
             <FormSubject onSuccess={getSubject} />
+            
+          </div>
+        ) : (
+          <></>
+        )}
+        {data ? (
+          <div className="w-full my-6">
+            <FormSubject onSuccess={getSubject}  initialData={{ id: data.subject_id , name: data.name, description: data.description }} />
           </div>
         ) : (
           <></>
@@ -105,19 +123,19 @@ export default function TableData() {
                     isOpen={isOpen}
                     onClose={handleClose}
                     onConfirm={() => handleDelete(data.subject_id)} // The onClick function will be called when the button is clicked
-                    title="Custom Title"
-                    message="This is a custom message."
+                    title="Anda yakin untuk hapus data ini?"
+                    message="Ini mungkin akan mempengruhi beberapa data lainnya"
                     variant="delete"
-                    confirmButtonText="Yes, Delete"
-                    cancelButtonText="No, Cancel"
+                    confirmButtonText="Ya, Hapus!"
+                    cancelButtonText="Tidak, Kembali!"
                   />
                   <Button
                     className="my-3"
-                    variant="secondary"
-                    onClick={handleAddData}
+                    variant="success"
+                    onClick={() => handleUpdate(data.subject_id)}
                     size="sm"
                   >
-                    Delete
+                    Update
                   </Button>
                 </td>
               </tr>
@@ -132,7 +150,7 @@ export default function TableData() {
           <Button
             className="my-3"
             variant="primary"
-            onClick={handleAddData}
+            onClick={handleForm}
             size="md"
           >
             Add Data
@@ -149,7 +167,7 @@ export default function TableData() {
               Previus
             </Button>
 
-            <span>{currentPage}</span>
+            <span className="px-4 py-1 border border-slate-600 rounded-sm">{currentPage}</span>
             <Button
               variant="primary"
               onClick={() => paginate(currentPage + 1)}
